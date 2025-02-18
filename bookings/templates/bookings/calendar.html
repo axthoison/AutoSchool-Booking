@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar Programări</title>
+    <link rel="stylesheet" href="{% static 'bookings/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Programări</h1>
+            <div class="view-options">
+                <button id="weekly-view">Săptămână</button>
+                <button id="daily-view">Zi</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="filters-panel">
+                <h2>Filtre</h2>
+                <div class="filter-section">
+                    <h3>Tip Mașină</h3>
+                    <label><input type="checkbox" class="car-filter" value="automatic"> Automată</label>
+                    <label><input type="checkbox" class="car-filter" value="manual"> Manuală</label>
+                </div>
+                <div class="filter-section">
+                    <h3>Instructori</h3>
+                    <ul id="instructors">
+                        <!-- Instructori dinamici -->
+                    </ul>
+                    <div id="instructor-profile">
+                        <img id="profile-pic" src="" alt="Instructor" style="display:none;">
+                    </div>
+                </div>
+            </aside>
+            
+            <div class="schedule-container">
+                <div id="calendar-header">
+                    <button id="prev-week" class="nav-btn">&#8592;</button>
+                    <h2 id="calendar-title"></h2>
+                    <button id="next-week" class="nav-btn">&#8594;</button>
+                </div>
+                
+                <table id="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Ora</th>
+                            <th id="day-1"></th>
+                            <th id="day-2"></th>
+                            <th id="day-3"></th>
+                            <th id="day-4"></th>
+                            <th id="day-5"></th>
+                            <th id="day-6"></th>
+                            <th id="day-7"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hour in hours %}
+                        <tr>
+                            <td class="hour">{{ hour }}</td>
+                            <td class="slot" data-hour="{{ hour }}" data-day="1"></td>
+                            <td class="slot" data-hour="{{ hour }}" data-day="2"></td>
+                            <td class="slot" data-hour="{{ hour }}" data-day="3"></td>
+                            <td class="slot" data-hour="{{ hour }}" data-day="4"></td>
+                            <td class="slot" data-hour="{{ hour }}" data-day="5"></td>
+                            <td class="slot" data-hour="{{ hour }}" data-day="6"></td>
+                            <td class="slot" data-hour="{{ hour }}" data-day="7"></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'bookings/script.js' %}"></script>
+</body>
+</html>
