@@ -91,16 +91,18 @@ h1 {
     background: #4b6a8e;
 }
 
-#schedule-table {
-    width: 100%;
-    border-collapse: collapse;
+#schedule-table th {
+    background: #3a506b;
+    color: white;
+    font-size: 16px;
+    text-align: center;
+    padding: 12px;
 }
 
-#schedule-table th, #schedule-table td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
+#schedule-table th:first-child {
+    background: #263445;  /* Darker background for the "Ora" column */
 }
+
 
 .hour {
     background: #e3eaf5;
@@ -109,16 +111,78 @@ h1 {
 
 .slot {
     height: 50px;
-    background: #f0f4fa;
+    background: #f0f4fa; /* Light gray for empty slots */
     cursor: pointer;
     transition: background 0.3s;
 }
 
-.slot.available {
-    background: #4caf50;
+.slot.booked {
+    background: #ff6b6b; /* Red for booked slots */
     color: white;
+    font-weight: bold;
+}
+
+.slot.available {
+    background: #4caf50; /* Green for available slots */
+    color: white;
+    font-weight: bold;
 }
 
 .slot:hover {
     background: #d1e2f7;
+}
+
+.messages {
+    list-style: none;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+}
+.messages li {
+    padding: 5px;
+    font-weight: bold;
+}
+.car-type-btn.selected {
+    background-color: #007bff;
+    color: white;
+}
+
+.day-view {
+    width: 100%;
+    max-width: 800px;
+    margin-top: 20px;
+}
+
+.day-view th, .day-view td {
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+}
+
+.day-view .hour {
+    background: #e3eaf5;
+    font-weight: bold;
+}
+#day-view-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.day-nav-btn {
+    background: #3a506b;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.day-nav-btn:hover {
+    background: #4b6a8e;
 }
