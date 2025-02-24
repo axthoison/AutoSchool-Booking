@@ -1,6 +1,6 @@
 from django.db import models
 from users.models import CustomUser
-from instructors.models import TimeSlot
+from instructors.models import TimeSlot,Instructor
 
 class Booking(models.Model):
     STATUS_CHOICES = [

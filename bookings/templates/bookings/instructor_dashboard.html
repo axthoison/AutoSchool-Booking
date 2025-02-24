@@ -1,0 +1,13 @@
+
+
+    <h2>Available Time Slots</h2>
+    <ul>
+        {% for slot in available_slots %}
+            <li>
+                {{ slot.date }} {{ slot.start_time }} - {{ slot.end_time }} | {{ slot.car_type }}
+            </li>
+        {% empty %}
+            <li>No available slots.</li>
+        {% endfor %}
+    </ul>  
+

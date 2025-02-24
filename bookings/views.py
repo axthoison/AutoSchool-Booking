@@ -6,6 +6,8 @@ import json
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from bookings.models import Booking
+
 
 def admin_dashboard(request):
     instructors = Instructor.objects.all()
@@ -57,11 +59,21 @@ def add_timeslots(request):
             return JsonResponse({'success': False, 'error': str(e)})
 
 def get_timeslots(request):
-    slots = TimeSlot.objects.filter(is_booked=False).values(
+    available_slots = TimeSlot.objects.filter(is_booked=False).values(
         'id', 'date', 'start_time', 'end_time', 'car_type', 'instructor__name'
     )
-    return JsonResponse(list(slots), safe=False)
+    
+    confirmed_bookings = Booking.objects.all().values(
+        'id', 'timeslot__date', 'timeslot__start_time', 'timeslot__end_time', 
+        'timeslot__car_type', 'timeslot__instructor__name', 'user__username'
+    )
+
+    return JsonResponse({
+        'available_slots': list(available_slots),
+        'confirmed_bookings': list(confirmed_bookings)
+    })
 
 
 def calendar_view(request):
     return render(request, 'bookings/calendar.html')
+

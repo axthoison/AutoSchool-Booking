@@ -16,6 +16,7 @@
         {% endfor %}
     </ul>
     {% endif %}
+    
     <div class="admin-container">
         <h1>Admin Dashboard</h1>
 
@@ -91,10 +92,10 @@
                     fetch("/bookings/get-timeslots/")
                     .then(response => response.json())
                     .then(data => {
-                        let events = data.map(slot => ({
+                        let events = data.available_slots.map(slot => ({
                             title: `${slot.car_type} - ${slot.instructor__name}`,
-                            start: slot.date + 'T' + slot.start_time,
-                            end: slot.date + 'T' + slot.end_time
+                            start: `${slot.date}T${slot.start_time}`,
+                            end: `${slot.date}T${slot.end_time}`
                         }));
                         successCallback(events);
                     })
