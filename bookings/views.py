@@ -26,6 +26,49 @@ def admin_dashboard(request):
         'form': form,
     })
 
+def calendar_view(request):
+    # Fetch all instructors for the filter
+    instructors = Instructor.objects.all()
+
+    # Fetch all available slots
+    available_slots = TimeSlot.objects.filter(is_booked=False).values(
+        'id', 'date', 'start_time', 'end_time', 'car_type', 'instructor__name'
+    )
+    available_slots = [
+        {
+            'id': slot['id'],
+            'date': slot['date'].isoformat(),
+            'start_time': slot['start_time'].strftime('%H:%M'),
+            'end_time': slot['end_time'].strftime('%H:%M'),
+            'car_type': slot['car_type'],
+            'instructor_name': slot['instructor__name'],
+        }
+        for slot in available_slots
+    ]
+
+    # Handle booking if POST request
+    if request.method == 'POST':
+        slot_id = request.POST.get('slot_id')
+        try:
+            timeslot = TimeSlot.objects.get(id=slot_id, is_booked=False)
+            Booking.objects.create(
+                user=request.user,
+                timeslot=timeslot,
+                status='confirmed'
+            )
+            timeslot.is_booked = True
+            timeslot.save()
+            messages.success(request, 'Slot booked successfully!')
+            return redirect('calendar')
+        except TimeSlot.DoesNotExist:
+            messages.error(request, 'Slot is no longer available.')
+            return redirect('calendar')
+
+    return render(request, 'bookings/calendar.html', {
+        'instructors': instructors,
+        'available_slots': available_slots,
+    })
+
 @csrf_exempt
 def add_timeslots(request):
     if request.method == 'POST':
@@ -74,6 +117,5 @@ def get_timeslots(request):
     })
 
 
-def calendar_view(request):
-    return render(request, 'bookings/calendar.html')
+
 

@@ -1,79 +1,501 @@
-{% load static %}
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar Programări</title>
-    <link rel="stylesheet" href="{% static 'bookings/styles.css' %}">
+    <title>Calendar</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a2b44;
+            margin: 0;
+            padding: 20px;
+            color: #e6ebf3;
+            display: flex;
+            min-height: 100vh;
+        }
+        .container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+        .calendar {
+            flex: 3;
+            background: transparent;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            overflow-x: auto;
+        }
+        .filter-column {
+            flex: 1;
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #e6ebf3;
+            font-size: 2em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #2c3e50;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .view-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .calendar-grid {
+            display: grid;
+            gap: 1px;
+            position: relative;
+            background: #34495e;
+        }
+        .hours-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .hour-slot {
+            height: 60px;
+            text-align: center;
+            font-size: 0.9em;
+            padding: 10px;
+            background: #3e5a74;
+            border: 1px solid #465c71;
+            border-radius: 5px 0 0 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .day-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            background: #3e5a74;
+            border: 1px solid #465c71;
+            border-radius: 5px 5px 0 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .time-cell {
+            height: 60px;
+            background: transparent;
+            border: 1px solid #465c71;
+            position: relative;
+            overflow: hidden;
+        }
+        .month-day {
+            min-height: 100px;
+            background: transparent;
+            border: 1px solid #465c71;
+            padding: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+        .slot {
+            position: absolute;
+            width: calc(100% / var(--overlap-count, 1));
+            background-color: #27ae60;
+            color: #fff;
+            font-size: 0.8em;
+            cursor: pointer;
+            border-radius: 3px;
+            padding: 5px;
+            box-sizing: border-box;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: center;
+            z-index: 1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .slot:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+        }
+        .month-slot {
+            padding: 5px;
+            background-color: #27ae60;
+            color: #fff;
+            font-size: 0.8em;
+            cursor: pointer;
+            border-radius: 3px;
+            margin: 2px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .month-slot:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .filter-column h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        .filter-section {
+            margin-bottom: 20px;
+        }
+        .filter-label {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #34495e;
+            border-radius: 5px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .filter-label:hover {
+            background-color: #3e5a74;
+        }
+        .filter-checkbox {
+            display: none;
+        }
+        .filter-checkbox + span {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: #465c71;
+            border-radius: 4px;
+            margin-right: 10px;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+        .filter-checkbox:checked + span {
+            background-color: #1e90ff;
+        }
+        .filter-checkbox:checked + span::after {
+            content: "✔";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 14px;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #1e90ff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            background-color: #4682b4;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .messages {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .messages .success { color: #27ae60; }
+        .messages .error { color: #e74c3c; }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Programări</h1>
-            <div class="view-options">
-                <button id="weekly-view">Săptămână</button>
-                <button id="daily-view">Zi</button>
+        <div class="calendar">
+            <h1>Available Slots</h1>
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <p class="{{ message.tags }}">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="header-controls">
+                <div>
+                    <button id="prev">Previous</button>
+                    <button id="next">Next</button>
+                </div>
+                <span id="dateDisplay"></span>
+                <div class="view-buttons">
+                    <button id="dayView">Day</button>
+                    <button id="weekView">Week</button>
+                    <button id="monthView">Month</button>
+                </div>
             </div>
-        </header>
-
-        <div class="main-content">
-            <aside class="filters-panel">
-                <h2>Filtre</h2>
-                <div class="filter-section">
-                    <h3>Tip Mașină</h3>
-                    <label><input type="checkbox" class="car-filter" value="automatic"> Automată</label>
-                    <label><input type="checkbox" class="car-filter" value="manual"> Manuală</label>
-                </div>
-                <div class="filter-section">
-                    <h3>Instructori</h3>
-                    <ul id="instructors">
-                        <!-- Instructori dinamici -->
-                    </ul>
-                    <div id="instructor-profile">
-                        <img id="profile-pic" src="" alt="Instructor" style="display:none;">
-                    </div>
-                </div>
-            </aside>
-            
-            <div class="schedule-container">
-                <div id="calendar-header">
-                    <button id="prev-week" class="nav-btn">&#8592;</button>
-                    <h2 id="calendar-title"></h2>
-                    <button id="next-week" class="nav-btn">&#8594;</button>
-                </div>
-                
-                <table id="schedule-table">
-                    <thead>
-                        <tr>
-                            <th>Ora</th>
-                            <th id="day-1"></th>
-                            <th id="day-2"></th>
-                            <th id="day-3"></th>
-                            <th id="day-4"></th>
-                            <th id="day-5"></th>
-                            <th id="day-6"></th>
-                            <th id="day-7"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for hour in hours %}
-                        <tr>
-                            <td class="hour">{{ hour }}</td>
-                            <td class="slot" data-hour="{{ hour }}" data-day="1"></td>
-                            <td class="slot" data-hour="{{ hour }}" data-day="2"></td>
-                            <td class="slot" data-hour="{{ hour }}" data-day="3"></td>
-                            <td class="slot" data-hour="{{ hour }}" data-day="4"></td>
-                            <td class="slot" data-hour="{{ hour }}" data-day="5"></td>
-                            <td class="slot" data-hour="{{ hour }}" data-day="6"></td>
-                            <td class="slot" data-hour="{{ hour }}" data-day="7"></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+        <div class="filter-column">
+            <h2>Filters</h2>
+            <div class="filter-section">
+                <h3>Instructors</h3>
+                <label class="filter-label">
+                    <input type="checkbox" class="filter-checkbox all-instructors-filter" value="all">
+                    <span></span>
+                    All Instructors
+                </label>
+                {% for instructor in instructors %}
+                    <label class="filter-label">
+                        <input type="checkbox" class="filter-checkbox instructor-filter" value="{{ instructor.name }}">
+                        <span></span>
+                        {{ instructor.name }}
+                    </label>
+                {% endfor %}
+            </div>
+            <div class="filter-section">
+                <h3>Car Type</h3>
+                <label class="filter-label">
+                    <input type="checkbox" class="filter-checkbox car-type-filter" value="Cutie Mecanică">
+                    <span></span>
+                    Cutie Mecanică
+                </label>
+                <label class="filter-label">
+                    <input type="checkbox" class="filter-checkbox car-type-filter" value="Cutie Automată">
+                    <span></span>
+                    Cutie Automată
+                </label>
             </div>
         </div>
     </div>
-    <script src="{% static 'bookings/script.js' %}"></script>
+
+    {{ available_slots|json_script:"availableSlots" }}
+
+    <script type="text/javascript">
+        const availableSlots = JSON.parse(document.getElementById("availableSlots").textContent);
+        const calendarGrid = document.getElementById("calendarGrid");
+        const dateDisplay = document.getElementById("dateDisplay");
+        const prevBtn = document.getElementById("prev");
+        const nextBtn = document.getElementById("next");
+        const dayViewBtn = document.getElementById("dayView");
+        const weekViewBtn = document.getElementById("weekView");
+        const monthViewBtn = document.getElementById("monthView");
+        const allInstructorsFilter = document.querySelector(".all-instructors-filter");
+        const instructorFilters = document.querySelectorAll(".instructor-filter");
+        const carTypeFilters = document.querySelectorAll(".car-type-filter");
+
+        let currentDate = new Date();
+        let viewMode = "week"; // Default view
+        const cellHeight = 60; // Height per hour in pixels
+        const hours = Array.from({ length: 16 }, (_, i) => 7 + i); // 7 AM to 10 PM
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            d.setDate(d.getDate() - day);
+            return d;
+        }
+
+        function renderCalendar() {
+            calendarGrid.innerHTML = "";
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const day = currentDate.getDate();
+
+            if (viewMode === "month") {
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                calendarGrid.style.gridTemplateColumns = "repeat(7, 1fr)";
+                dateDisplay.textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
+
+                for (let i = 0; i < firstDay; i++) {
+                    const emptyDiv = document.createElement("div");
+                    emptyDiv.className = "month-day";
+                    calendarGrid.appendChild(emptyDiv);
+                }
+
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const date = new Date(year, month, i);
+                    const dateStr = date.toISOString().split("T")[0];
+                    const dayDiv = document.createElement("div");
+                    dayDiv.className = "month-day";
+                    dayDiv.innerHTML = `<div class="day-header">${i}</div>`;
+
+                    const filteredSlots = filterSlots(dateStr);
+                    filteredSlots.forEach(slot => {
+                        const slotDiv = document.createElement("div");
+                        slotDiv.className = "month-slot";
+                        slotDiv.innerHTML = `
+                            ${slot.start_time} - ${slot.end_time}<br>
+                            ${slot.car_type}<br>
+                            ${slot.instructor_name}
+                        `;
+                        slotDiv.dataset.slotId = slot.id;
+                        slotDiv.addEventListener("click", () => bookSlot(slot.id));
+                        dayDiv.appendChild(slotDiv);
+                    });
+
+                    calendarGrid.appendChild(dayDiv);
+                }
+            } else if (viewMode === "week") {
+                const weekStart = getWeekStart(currentDate);
+                calendarGrid.style.gridTemplateColumns = "80px repeat(7, 1fr)";
+                dateDisplay.textContent = `${weekStart.toLocaleDateString()} - ${new Date(weekStart).setDate(weekStart.getDate() + 6).toLocaleDateString()}`;
+
+                // Hours column
+                const hoursDiv = document.createElement("div");
+                hoursDiv.className = "hours-column";
+                hoursDiv.innerHTML = `<div class="hour-slot"></div>` + hours.map(hour => `
+                    <div class="hour-slot">${hour}:00</div>
+                `).join("");
+                calendarGrid.appendChild(hoursDiv);
+
+                // Week columns
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(weekStart);
+                    date.setDate(weekStart.getDate() + i);
+                    const dateStr = date.toISOString().split("T")[0];
+                    const dayColumn = document.createElement("div");
+                    dayColumn.className = "day-column";
+                    dayColumn.innerHTML = `
+                        <div class="day-header">${date.toLocaleString('default', { weekday: 'short' })} ${date.getDate()}</div>
+                        ${hours.map(() => `<div class="time-cell"></div>`).join("")}
+                    `;
+                    calendarGrid.appendChild(dayColumn);
+
+                    const filteredSlots = filterSlots(dateStr);
+                    renderSlots(dayColumn, filteredSlots, dateStr);
+                }
+            } else if (viewMode === "day") {
+                calendarGrid.style.gridTemplateColumns = "80px 1fr";
+                dateDisplay.textContent = currentDate.toLocaleDateString();
+
+                // Hours column
+                const hoursDiv = document.createElement("div");
+                hoursDiv.className = "hours-column";
+                hoursDiv.innerHTML = `<div class="hour-slot"></div>` + hours.map(hour => `
+                    <div class="hour-slot">${hour}:00</div>
+                `).join("");
+                calendarGrid.appendChild(hoursDiv);
+
+                // Single day column
+                const dateStr = currentDate.toISOString().split("T")[0];
+                const dayColumn = document.createElement("div");
+                dayColumn.className = "day-column";
+                dayColumn.innerHTML = `
+                    <div class="day-header">${currentDate.toLocaleString('default', { weekday: 'long' })} ${day}</div>
+                    ${hours.map(() => `<div class="time-cell"></div>`).join("")}
+                `;
+                calendarGrid.appendChild(dayColumn);
+
+                const filteredSlots = filterSlots(dateStr);
+                renderSlots(dayColumn, filteredSlots, dateStr);
+            }
+        }
+
+        function filterSlots(dateStr) {
+            return availableSlots.filter(slot => {
+                const allInstructors = allInstructorsFilter.checked;
+                const matchesInstructor = allInstructors || Array.from(instructorFilters).some(f => f.checked && f.value === slot.instructor_name) || !Array.from(instructorFilters).some(f => f.checked);
+                const matchesCarType = Array.from(carTypeFilters).some(f => f.checked && f.value === (slot.car_type === "manual" ? "Cutie Mecanică" : "Cutie Automată")) || !Array.from(carTypeFilters).some(f => f.checked);
+                return slot.date === dateStr && matchesInstructor && matchesCarType;
+            });
+        }
+
+        function renderSlots(dayColumn, slots, dateStr) {
+            const slotsByHour = {};
+            slots.forEach(slot => {
+                const startHour = parseInt(slot.start_time.split(":")[0]) + parseInt(slot.start_time.split(":")[1]) / 60;
+                const endHour = parseInt(slot.end_time.split(":")[0]) + parseInt(slot.end_time.split(":")[1]) / 60;
+                const startIndex = hours.indexOf(Math.floor(startHour));
+                const duration = endHour - startHour;
+                if (startIndex >= 0) {
+                    const key = `${dateStr}-${startIndex}`;
+                    if (!slotsByHour[key]) slotsByHour[key] = [];
+                    slotsByHour[key].push({ slot, startHour, duration });
+                }
+            });
+
+            Object.keys(slotsByHour).forEach(key => {
+                const [_, startIndex] = key.split("-");
+                const timeCell = dayColumn.children[parseInt(startIndex) + 1];
+                const slots = slotsByHour[key];
+                const overlapCount = slots.length;
+
+                slots.forEach((item, index) => {
+                    const slotDiv = document.createElement("div");
+                    slotDiv.className = "slot";
+                    slotDiv.style.top = `${(item.startHour - hours[startIndex]) * cellHeight}px`;
+                    slotDiv.style.height = `${item.duration * cellHeight}px`;
+                    slotDiv.style.width = `${100 / overlapCount}%`;
+                    slotDiv.style.left = `${(index / overlapCount) * 100}%`;
+                    slotDiv.style.setProperty('--overlap-count', overlapCount);
+                    slotDiv.innerHTML = `
+                        ${item.slot.start_time} - ${item.slot.end_time}<br>
+                        ${item.slot.car_type}<br>
+                        ${item.slot.instructor_name}
+                    `;
+                    slotDiv.dataset.slotId = item.slot.id;
+                    slotDiv.addEventListener("click", () => bookSlot(item.slot.id));
+                    timeCell.appendChild(slotDiv);
+                });
+            });
+        }
+
+        function bookSlot(slotId) {
+            if (confirm("Book this slot?")) {
+                const form = document.createElement("form");
+                form.method = "POST";
+                form.action = "";
+                form.innerHTML = `{% csrf_token %}<input type="hidden" name="slot_id" value="${slotId}">`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        prevBtn.addEventListener("click", () => {
+            if (viewMode === "month") currentDate.setMonth(currentDate.getMonth() - 1);
+            else if (viewMode === "week") currentDate.setDate(currentDate.getDate() - 7);
+            else currentDate.setDate(currentDate.getDate() - 1);
+            renderCalendar();
+        });
+
+        nextBtn.addEventListener("click", () => {
+            if (viewMode === "month") currentDate.setMonth(currentDate.getMonth() + 1);
+            else if (viewMode === "week") currentDate.setDate(currentDate.getDate() + 7);
+            else currentDate.setDate(currentDate.getDate() + 1);
+            renderCalendar();
+        });
+
+        dayViewBtn.addEventListener("click", () => {
+            viewMode = "day";
+            renderCalendar();
+        });
+
+        weekViewBtn.addEventListener("click", () => {
+            viewMode = "week";
+            renderCalendar();
+        });
+
+        monthViewBtn.addEventListener("click", () => {
+            viewMode = "month";
+            renderCalendar();
+        });
+
+        allInstructorsFilter.addEventListener("change", () => {
+            instructorFilters.forEach(f => f.checked = false);
+            renderCalendar();
+        });
+        instructorFilters.forEach(filter => filter.addEventListener("change", () => {
+            if (filter.checked) allInstructorsFilter.checked = false;
+            renderCalendar();
+        }));
+        carTypeFilters.forEach(filter => filter.addEventListener("change", renderCalendar));
+
+        renderCalendar();
+    </script>
 </body>
 </html>

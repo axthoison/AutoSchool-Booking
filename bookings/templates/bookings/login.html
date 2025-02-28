@@ -1,6 +1,152 @@
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-</form>
-<p><a href="{% url 'password_reset' %}">Forgot Password?</a></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a2b44;
+            margin: 0;
+            padding: 20px;
+            color: #e6ebf3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .form-container {
+            max-width: 500px;
+            width: 100%;
+            background: #2c3e50;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #e6ebf3;
+            font-size: 2em;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            
+        }
+        label {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #e6ebf3;
+            
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 95%;
+            padding: 12px;
+            background-color: #34495e;
+            border: 1px solid #465c71;
+            border-radius: 5px;
+            color: #e6ebf3;
+            font-size: 1em;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+            outline: none;
+        }
+        .errorlist {
+            color: #e74c3c;
+            font-size: 0.9em;
+            margin-top: 5px;
+            list-style: none;
+            padding: 0;
+            align-self: flex-start;
+        }
+        button[type="submit"] {
+            padding: 12px 24px;
+            background-color: rgb(141, 166, 205);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            align-self: center;
+        }
+        button[type="submit"]:hover {
+            background-color: #4682b4;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .forgot-password {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .forgot-password a {
+            color: rgb(141, 166, 205);
+            text-decoration: none;
+            font-size: 1em;
+            transition: color 0.3s ease;
+        }
+        .forgot-password a:hover {
+            color: #4682b4;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Login</h1>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-field">
+                <label for="{{ form.username.id_for_label }}">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.username.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <div class="form-field">
+                <label for="{{ form.password.id_for_label }}">Password</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.password.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            {% if form.non_field_errors %}
+                <ul class="errorlist">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <button type="submit">Login</button>
+        </form>
+        <p class="forgot-password">
+            <a href="{% url 'password_reset' %}">Forgot Password?</a>
+        </p>
+    </div>
+</body>
+</html>

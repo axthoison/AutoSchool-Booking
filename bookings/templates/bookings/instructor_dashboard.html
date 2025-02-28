@@ -1,13 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Dashboard</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a2b44;
+            margin: 0;
+            padding: 20px;
+            color: #e6ebf3;
+        }
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #e6ebf3;
+            font-size: 2.5em;
+            margin: 0 15px;
+        }
+        .profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgb(141, 166, 205);
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        button {
+            padding: 12px 24px;
+            background-color:rgb(141, 166, 205); /* Brighter blue for buttons */
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            background-color: #4682b4; /* Steel blue on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .calendar {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 15px;
+            display: block;
+        }
+        .week {
+            display: inline-flex;
+            gap: 15px;
+            transition: transform 0.5s ease;
+        }
+        .day {
+            width: 220px;
+            background-color: #34495e;
+            border: 1px solid #465c71;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .day-header {
+            text-align: center;
+            font-weight: bold;
+            color: #e6ebf3;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        .slot {
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 10px;
+            font-size: 1em;
+            background-color: #3e5a74;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .slot:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .slot-time {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #fff;
+        }
+        .available {
+            background-color:rgb(36, 120, 71);
+            color: #fff;
+        }
+        .booked {
+            background-color: #c0392b;
+            color: #fff;
+        }
+        .no-slots {
+            text-align: center;
+            color: #bdc3c7;
+            padding: 20px;
+            font-size: 1.1em;
+        }
+        /* Daily View Styles */
+        .daily-view {
+            display: none;
+            padding: 20px 0;
+        }
+        .daily-view.active {
+            display: block;
+        }
+        .daily-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .daily-day {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #34495e;
+            border: 1px solid #465c71;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .daily-day-header {
+            text-align: center;
+            font-weight: bold;
+            color: #e6ebf3;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .daily-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black for slight darkening */
+            backdrop-filter: blur(5px); /* Blur effect */
+            -webkit-backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #2c3e50;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            color: #e6ebf3;
+            position: relative;
+            animation: slideIn 0.2s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        .modal-content p {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            color: #e6ebf3;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-btn:hover {
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {% if instructor.profile_picture %}
+                <img src="{{ instructor.profile_picture.url }}" alt="Profile Picture" class="profile-pic">
+            {% else %}
+                <div class="profile-pic" style="background-color: #465c71;"></div>
+            {% endif %}
+            <h1>Hello, {{ instructor.name }}</h1>
+        </div>
 
+        <div class="controls" id="weeklyControls">
+            <button id="prevWeek">Previous Week</button>
+            <button id="toggleDaily">Daily View</button>
+            <button id="nextWeek">Next Week</button>
+        </div>
 
-    <h2>Available Time Slots</h2>
-    <ul>
-        {% for slot in available_slots %}
-            <li>
-                {{ slot.date }} {{ slot.start_time }} - {{ slot.end_time }} | {{ slot.car_type }}
-            </li>
-        {% empty %}
-            <li>No available slots.</li>
-        {% endfor %}
-    </ul>  
+        <div class="calendar" id="calendar">
+            <div class="week" id="weekContainer"></div>
+        </div>
 
+        <div class="daily-view" id="dailyView">
+            <div class="daily-controls">
+                <button id="prevDay">Previous Day</button>
+                <button id="toggleWeekly">Weekly View</button>
+                <button id="nextDay">Next Day</button>
+            </div>
+            <div class="daily-day" id="dailyDay"></div>
+        </div>
+
+        <!-- Modal for Slot Details -->
+        <div class="modal" id="slotModal">
+            <div class="modal-content">
+                <span class="close-btn" id="closeModal">×</span>
+                <h2>Detalii Programare</h2>
+                <p><strong>Data:</strong> <span id="modalDate"></span></p>
+                <p><strong>Ora:</strong> <span id="modalTime"></span></p>
+                <p><strong>Tipul cutiei:</strong> <span id="modalCarType"></span></p>
+                <p><strong>Statutul:</strong> <span id="modalStatus"></span></p>
+                <p><strong>Client:</strong> <span id="modalClient"></span></p>
+            </div>
+        </div>
+    </div>
+
+    {{ available_slots|json_script:"availableSlots" }}
+    {{ confirmed_bookings|json_script:"confirmedBookings" }}
+
+    <script type="text/javascript">
+        const availableSlots = JSON.parse(document.getElementById("availableSlots").textContent);
+        const confirmedBookings = JSON.parse(document.getElementById("confirmedBookings").textContent);
+
+        const allSlots = [
+            ...availableSlots.map(slot => ({
+                date: slot.date,
+                start_time: slot.start_time,
+                end_time: slot.end_time,
+                car_type: slot.car_type === "manual" ? "Cutie Mecanică" : "Cutie Automată",
+                status: "Valabilă"
+            })),
+            ...confirmedBookings.map(booking => ({
+                date: booking.timeslot__date,
+                start_time: booking.timeslot__start_time,
+                end_time: booking.timeslot__end_time,
+                car_type: booking.timeslot__car_type === "manual" ? "Cutie Mecanică" : "Cutie Automată",
+                client: booking.user__username,
+                status: "Programată"
+            }))
+        ];
+
+        const slotsByDate = allSlots.reduce((acc, slot) => {
+            if (!acc[slot.date]) acc[slot.date] = [];
+            acc[slot.date].push(slot);
+            return acc;
+        }, {});
+
+        const weeklyControls = document.getElementById("weeklyControls");
+        const weekContainer = document.getElementById("weekContainer");
+        const dailyView = document.getElementById("dailyView");
+        const dailyDay = document.getElementById("dailyDay");
+        const prevWeekBtn = document.getElementById("prevWeek");
+        const nextWeekBtn = document.getElementById("nextWeek");
+        const toggleDailyBtn = document.getElementById("toggleDaily");
+        const prevDayBtn = document.getElementById("prevDay");
+        const nextDayBtn = document.getElementById("nextDay");
+        const toggleWeeklyBtn = document.getElementById("toggleWeekly");
+        const slotModal = document.getElementById("slotModal");
+        const closeModalBtn = document.getElementById("closeModal");
+        const modalDate = document.getElementById("modalDate");
+        const modalTime = document.getElementById("modalTime");
+        const modalCarType = document.getElementById("modalCarType");
+        const modalStatus = document.getElementById("modalStatus");
+        const modalClient = document.getElementById("modalClient");
+
+        let currentWeekStart = new Date();
+        currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
+        let weekOffset = 0;
+        let currentDay = new Date();
+        let isDailyView = false;
+
+        function renderWeek() {
+            weekContainer.innerHTML = "";
+            const weekStart = new Date(currentWeekStart);
+            weekStart.setDate(weekStart.getDate() + weekOffset * 7);
+
+            for (let i = 0; i < 7; i++) {
+                const dayDate = new Date(weekStart);
+                dayDate.setDate(weekStart.getDate() + i);
+                const dateStr = dayDate.toISOString().split("T")[0];
+                const daySlots = slotsByDate[dateStr] || [];
+
+                const dayDiv = document.createElement("div");
+                dayDiv.className = "day";
+                dayDiv.innerHTML = `
+                    <div class="day-header">${dayDate.toDateString()}</div>
+                    ${daySlots.length ? daySlots.map((slot, index) => `
+                        <div class="slot ${slot.status === "Valabilă" ? "available" : "booked"}" data-slot-index="${index}" data-date="${dateStr}">
+                            <span class="slot-time">${slot.start_time} - ${slot.end_time}</span> <br>
+                            ${slot.car_type} <br>
+                            ${slot.client ? "Client: " + slot.client : "Disponibil"}
+                        </div>
+                    `).join("") : "<div class='no-slots'>Nu aveți programări</div>"}
+                `;
+                weekContainer.appendChild(dayDiv);
+
+                dayDiv.querySelectorAll(".slot").forEach(slotEl => {
+                    slotEl.addEventListener("click", () => showSlotDetails(slotEl.dataset.date, slotEl.dataset.slotIndex));
+                });
+            }
+        }
+
+        function renderDailyDay() {
+            const dateStr = currentDay.toISOString().split("T")[0];
+            const daySlots = slotsByDate[dateStr] || [];
+
+            dailyDay.innerHTML = `
+                <div class="daily-day-header">${currentDay.toDateString()}</div>
+                <div class="daily-slots">
+                    ${daySlots.length ? daySlots.map((slot, index) => `
+                        <div class="slot ${slot.status === "Valabilă" ? "available" : "booked"}" data-slot-index="${index}" data-date="${dateStr}">
+                            <span class="slot-time">${slot.start_time} - ${slot.end_time}</span> <br>
+                            ${slot.car_type} <br>
+                            ${slot.client ? "Client: " + slot.client : "Disponibil"}
+                        </div>
+                    `).join("") : "<div class='no-slots'>Nu aveți programări</div>"}
+                </div>
+            `;
+
+            dailyDay.querySelectorAll(".slot").forEach(slotEl => {
+                slotEl.addEventListener("click", () => showSlotDetails(slotEl.dataset.date, slotEl.dataset.slotIndex));
+            });
+        }
+
+        function showSlotDetails(date, slotIndex) {
+            const slot = slotsByDate[date][slotIndex];
+            modalDate.textContent = new Date(date).toDateString();
+            modalTime.textContent = `${slot.start_time} - ${slot.end_time}`;
+            modalCarType.textContent = slot.car_type;
+            modalStatus.textContent = slot.status;
+            modalClient.textContent = slot.client || "N/A";
+            slotModal.style.display = "flex";
+        }
+
+        function closeModal() {
+            slotModal.style.display = "none";
+        }
+
+        function toggleView() {
+            isDailyView = !isDailyView;
+            if (isDailyView) {
+                calendar.style.display = "none";
+                dailyView.classList.add("active");
+                prevWeekBtn.style.display = "none";
+                nextWeekBtn.style.display = "none";
+                toggleDailyBtn.style.display = "none";
+                renderDailyDay();
+            } else {
+                calendar.style.display = "block";
+                dailyView.classList.remove("active");
+                prevWeekBtn.style.display = "inline-block";
+                nextWeekBtn.style.display = "inline-block";
+                toggleDailyBtn.style.display = "inline-block";
+                renderWeek();
+            }
+        }
+
+        prevWeekBtn.addEventListener("click", () => {
+            if (!isDailyView) {
+                weekOffset--;
+                renderWeek();
+            }
+        });
+
+        nextWeekBtn.addEventListener("click", () => {
+            if (!isDailyView) {
+                weekOffset++;
+                renderWeek();
+            }
+        });
+
+        prevDayBtn.addEventListener("click", () => {
+            if (isDailyView) {
+                currentDay.setDate(currentDay.getDate() - 1);
+                renderDailyDay();
+            }
+        });
+
+        nextDayBtn.addEventListener("click", () => {
+            if (isDailyView) {
+                currentDay.setDate(currentDay.getDate() + 1);
+                renderDailyDay();
+            }
+        });
+
+        toggleDailyBtn.addEventListener("click", toggleView);
+        toggleWeeklyBtn.addEventListener("click", toggleView);
+
+        closeModalBtn.addEventListener("click", closeModal);
+        slotModal.addEventListener("click", (e) => {
+            if (e.target === slotModal) closeModal();
+        });
+
+        renderWeek();
+    </script>
+</body>
+</html>
