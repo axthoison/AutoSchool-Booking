@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from instructors.models import TimeSlot, Instructor
+from instructors.models import TimeSlot, Instructor,CustomUser
 from instructors.forms import InstructorForm
 import json
 from datetime import datetime
@@ -11,19 +11,36 @@ from bookings.models import Booking
 
 def admin_dashboard(request):
     instructors = Instructor.objects.all()
-    
+    available_slots = TimeSlot.objects.filter(is_booked=False)
+    users = CustomUser.objects.filter(role='user') 
+
     if request.method == 'POST':
-        form = InstructorForm(request.POST, request.FILES)
-        if form.is_valid():
-            instructor, temp_password = form.save()  # Get instructor & generated password
-            messages.success(request, f"Instructor '{instructor.name}' added! Temporary password: {temp_password}")
-            return redirect('admin-dashboard')
-    else:
-        form = InstructorForm()
+        slot_id = request.POST.get('slot_id')
+        is_admin_booking = request.POST.get('admin_booking') == 'true'
+        user_id = request.POST.get('user_id')
+
+        try:
+            timeslot = TimeSlot.objects.get(id=slot_id, is_booked=False)
+            if is_admin_booking and user_id:
+                user = CustomUser.objects.get(id=user_id)
+            else:
+                user = request.user
+
+            Booking.objects.create(
+                user=user,
+                timeslot=timeslot,
+                status='confirmed'
+            )
+            timeslot.is_booked = True
+            timeslot.save()
+            return JsonResponse({'success': True})  
+        except (TimeSlot.DoesNotExist, CustomUser.DoesNotExist):
+            return JsonResponse({'success': False, 'error': 'Slot or user unavailable'}, status=400)
 
     return render(request, 'bookings/admin_dashboard.html', {
         'instructors': instructors,
-        'form': form,
+        'available_slots': available_slots,
+        'users': users,
     })
 
 def calendar_view(request):

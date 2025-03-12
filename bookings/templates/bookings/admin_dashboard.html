@@ -4,10 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="{% static 'bookings/admin_styles.css' %}">
+    <link rel="stylesheet" href="{% static 'bookings/admin_styles.css' %}?v={% now 'U' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
 </head>
-
 <body>
     {% if messages %}
     <ul class="messages">
@@ -22,7 +21,7 @@
 
         <section class="add-instructor">
             <h2>Adaugă Instructor</h2>
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" id="add-instructor-form">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <button type="submit">Adaugă</button>
@@ -30,80 +29,76 @@
         </section>
         
         <section class="instructor-list">
+            <button id="manual-booking-btn">+ Rezervare Manuală</button>
+            <form id="booking-form" style="display: none; margin-top: 15px;">
+                {% csrf_token %}
+                <label for="manual-slot">Slot Disponibil:</label>
+                <select id="manual-slot" name="slot_id">
+                    <option value="">Selectează un slot</option>
+                    <!-- Populated by JS -->
+                </select>
+                <label for="manual-user">Utilizator:</label>
+                <input type="text" id="manual-user-search" placeholder="Caută utilizator..." list="user-options">
+                <datalist id="user-options">
+                    {% for user in users %}
+                        <option value="{{ user.username }}" data-id="{{ user.id }}"></option>
+                    {% endfor %}
+                </datalist>
+                <input type="hidden" id="manual-user" name="user_id">
+                <input type="hidden" name="admin_booking" value="true">
+                <button type="submit">Confirmă Rezervarea</button>
+            </form>
+
             <h2>Instructori existenți</h2>
             <ul>
                 {% for instructor in instructors %}
                     <li>{{ instructor.name }}</li>
                 {% endfor %}
             </ul>
+
+            <div class="car-type-filter">
+                <h3>Filtru Tip Mașină</h3>
+                <label><input type="checkbox" class="car-type-checkbox" value="automatic"> Cutie Automată</label>
+                <label><input type="checkbox" class="car-type-checkbox" value="manual"> Cutie Mecanică</label>
+            </div>
         </section>
         
         <section class="manage-slots">
-            <h2>Gestionează Orele Disponibile</h2>
+            <h2>Gestionează Programări</h2>
             <form id="add-slot-form">
+                {% csrf_token %}
                 <label for="instructor">Instructor:</label>
                 <select id="instructor" name="instructor">
                     {% for instructor in instructors %}
                         <option value="{{ instructor.id }}">{{ instructor.name }}</option>
                     {% endfor %}
                 </select>
-            
                 <label for="start-date">Data Start:</label>
                 <input type="date" id="start-date" name="start_date">
-                
-                <label for="end-date">Data Sfârșit:</label>
+                <label for="start-date">Data Sfârșit:</label>
                 <input type="date" id="end-date" name="end_date">
-                
                 <label for="start-time">Ora Start:</label>
                 <input type="time" id="start-time" name="start_time">
-                
                 <label for="end-time">Ora Sfârșit:</label>
                 <input type="time" id="end-time" name="end_time">
-                
                 <label>Tip Mașină:</label>
                 <button type="button" class="car-type-btn" data-value="automatic">Automată</button>
                 <button type="button" class="car-type-btn" data-value="manual">Manuală</button>
                 <input type="hidden" id="car-type" name="car_type">
-                
                 <button type="submit">Adaugă Slot</button>
             </form>
         </section>
         
         <section class="calendar-container">
-            <h2>Calendar Sloturi Disponibile</h2>
+            <h2>Calendar Sloturi</h2>
             <div id="calendar"></div>
         </section>
     </div>
 
+    <div id="success-message" class="success-message" style="display: none;"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
-    <script src="{% static 'bookings/admin_script.js' %}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let calendarEl = document.getElementById('calendar');
-            let calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'timeGridWeek,timeGridDay'
-                },
-                events: function(fetchInfo, successCallback, failureCallback) {
-                    fetch("/bookings/get-timeslots/")
-                    .then(response => response.json())
-                    .then(data => {
-                        let events = data.available_slots.map(slot => ({
-                            title: `${slot.car_type} - ${slot.instructor__name}`,
-                            start: `${slot.date}T${slot.start_time}`,
-                            end: `${slot.date}T${slot.end_time}`
-                        }));
-                        successCallback(events);
-                    })
-                    .catch(error => failureCallback(error));
-                }
-            });
-            calendar.render();
-        });
-    </script>
+    <script src="{% static 'bookings/admin_script.js' %}?v={% now 'U' %}"></script>
 </body>
 </html>
